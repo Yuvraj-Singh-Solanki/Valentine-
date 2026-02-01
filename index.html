@@ -7,7 +7,7 @@
   <!-- Cute font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 
-  <!-- Share preview (optional). Replace image URL if you add one. -->
+  <!-- Share preview (optional) -->
   <meta property="og:title" content="Be My Valentine ❤️">
   <meta property="og:description" content="I made something just for you.">
   <meta property="og:type" content="website">
@@ -279,11 +279,11 @@
     let attempts = 0;
     function moveNo(){
       attempts++;
-      // Increase "Yes" button size slightly, shrink "No"
-      const scaleY = 1 + Math.min(.08*attempts, .9);
-      yesBtn.style.transform = `translateY(-2px) scale(${scaleY})`;
+      // Grow "Yes", shrink "No"
+      const grow = 1 + Math.min(.08*attempts, .9);
+      yesBtn.style.transform = `translateY(-2px) scale(${grow})`;
+
       const shrink = Math.max(0.7 - attempts*0.04, 0.45);
-      noBtn.style.transform = `translate(-50%,0) scale(${shrink}) rotate(${(attempts%2? -8: 8)}deg)`;
 
       // Find new safe position for No within viewport
       const btnW = noBtn.offsetWidth || 100;
@@ -295,11 +295,14 @@
       const x = Math.random() * maxX + pad;
       const y = Math.random() * maxY + pad;
 
+      // Switch to fixed positioning and set pixel coords
+      noBtn.style.position = 'fixed';
       noBtn.style.left = x + 'px';
       noBtn.style.top = y + 'px';
-      noBtn.style.position = 'fixed';
+      // IMPORTANT: remove the initial translate(-50%, 0) when we start moving
+      noBtn.style.transform = `scale(${shrink}) rotate(${(attempts%2? -8: 8)}deg)`;
 
-      // Change text sometimes for fun
+      // Fun quips
       const quips = ['Nice try 😜', 'Too slow! 🤭', 'Catch me! 🏃‍♀️💨', 'Awww c’mon 😅'];
       if (attempts % 2 === 0) noBtn.textContent = quips[(attempts/2) % quips.length];
     }
@@ -350,3 +353,50 @@
         h.className = 'rain-heart';
         h.textContent = ['💖','❤️','💕','💘'][i%4];
         h.style.left = (Math.random()*100)+'vw';
+        // set CSS var used in animation
+        h.style.setProperty('--fall', (4 + Math.random()*5) + 's');
+        document.body.appendChild(h);
+        setTimeout(()=>h.remove(), 9000);
+      }
+    }
+
+    // ------- Yes click -> show finale -------
+    function yesClicked(e){
+      finale.classList.add('show');
+      const cx = e?.clientX ?? window.innerWidth/2;
+      const cy = e?.clientY ?? window.innerHeight/2;
+      heartsBurst(cx, cy, 130);
+      heartsRain(34);
+    }
+    yesBtn.addEventListener('click', yesClicked);
+
+    // Extra: more bursts on clicks in the finale
+    finale.addEventListener('click', (e)=>{
+      heartsBurst(e.clientX, e.clientY, 90);
+    });
+
+    // Accessibility
+    noBtn.addEventListener('focus', moveNo);
+    yesBtn.addEventListener('keyup', (e)=>{ if(e.key==='Enter' || e.key===' ') yesClicked(e); });
+
+    // ------- Cursor heart trail (subtle) -------
+    let lastTrail = 0;
+    window.addEventListener('mousemove', (e)=>{
+      const now = performance.now();
+      if(now - lastTrail < 90) return;
+      lastTrail = now;
+      const s = document.createElement('div');
+      s.className = 'confetti';
+      s.textContent = '💗';
+      s.style.left = e.clientX + 'px';
+      s.style.top = e.clientY + 'px';
+      s.style.setProperty('--tx', (Math.random()*40-20)+'px');
+      s.style.setProperty('--ty', (-40 - Math.random()*30)+'px');
+      s.style.setProperty('--rot', (Math.random()*120-60)+'deg');
+      s.style.setProperty('--dur', '.7s');
+      document.body.appendChild(s);
+      setTimeout(()=>s.remove(), 900);
+    }, {passive:true});
+  </script>
+</body>
+</html>
