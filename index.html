@@ -42,7 +42,6 @@
       100%{background-position:0% 50%}
     }
 
-    /* Subtle floating hearts */
     .background-hearts{
       position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;
     }
@@ -62,7 +61,6 @@
       display:flex; align-items:center; justify-content:center;
       padding:24px;
     }
-
     .card{
       position:relative;
       width:min(92vw,720px);
@@ -76,14 +74,12 @@
       border:1px solid rgba(255,255,255,.55);
       overflow:hidden;
     }
-
     .ribbon{
       position:absolute; inset:auto -40px -40px auto;
       transform:rotate(-12deg);
       font-weight:800; font-size:92px; color:rgba(255,255,255,.25);
       pointer-events:none; user-select:none;
     }
-
     .title{
       margin:0 0 8px 0; font-size:28px; line-height:1.25; color:#c9164c;
       text-shadow:0 1px 0 rgba(255,255,255,.6);
@@ -94,9 +90,7 @@
       will-change:width;
     }
 
-    .btns{
-      position:relative; margin-top:16px; height:120px;
-    }
+    .btns{ position:relative; margin-top:16px; height:120px; }
     button{
       font-family:inherit; font-weight:600;
       padding:12px 26px; font-size:18px;
@@ -110,21 +104,19 @@
     #yes:hover{ transform:translateY(-2px) scale(1.05) }
     #yes:active{ transform:translateY(0) scale(.98) }
 
-    /* Start centered; will switch to fixed when it moves */
+    /* Start centered; switches to fixed at first move */
     #no{
       background:#e6e6e6; color:#333; position:absolute; left:50%; top:64px;
-      transform:translate(-50%,0);
+      transform:translate(-50%,0); /* removed after first move */
       box-shadow:0 6px 14px rgba(0,0,0,.15);
-      z-index:10000; /* keep above card */
+      z-index:10000;
       transition:left .18s ease, top .18s ease, transform .18s ease;
-      will-change: left, top, transform;
+      will-change:left, top, transform;
+      touch-action:none; /* so touchstart fires reliably */
     }
 
-    .hint{
-      margin-top:6px; font-size:13px; color:#7b0d31; opacity:.9;
-    }
+    .hint{ margin-top:6px; font-size:13px; color:#7b0d31; opacity:.9; }
 
-    /* Sparkles on hover for Yes */
     .sparkle{
       position:absolute; width:10px; height:10px; border-radius:50%;
       background:#fff; pointer-events:none; opacity:0;
@@ -137,39 +129,32 @@
       100%{opacity:0; transform:translate(calc(var(--sx)*2), calc(var(--sy)*2)) scale(1)}
     }
 
-    /* Finale screen */
     .finale{
       position:fixed; inset:0; display:none; place-items:center;
       text-align:center; color:#fff; z-index:5; overflow:hidden;
-      background:radial-gradient(ellipse at center, rgba(0,0,0,.15), rgba(0,0,0,.35)) , 
+      background:radial-gradient(ellipse at center, rgba(0,0,0,.15), rgba(0,0,0,.35)),
                  linear-gradient(135deg,#ff758c,#ff7eb3 55%, #ffafbd);
       animation:bgMove 16s ease infinite;
     }
     .finale.show{ display:grid; }
-
     .finale h1{
       font-size:clamp(28px, 6vw, 56px);
       margin:0 16px; line-height:1.15; text-shadow:0 6px 22px rgba(0,0,0,.2);
       animation:popIn .7s cubic-bezier(.2,.8,.2,1) forwards;
       opacity:0; transform:translateY(12px) scale(.96);
     }
-    @keyframes popIn{
-      to{opacity:1; transform:translateY(0) scale(1)}
-    }
-
-    /* (Removed the "psst..." line)
-       If you still keep a <p> there, this hides it:
-    */
+    @keyframes popIn{ to{opacity:1; transform:translateY(0) scale(1)} }
     .finale p{ display:none; }
 
-    /* Confetti hearts ABOVE the overlay */
+    /* Confetti / rain ABOVE the overlay */
+    .confetti, .rain-heart{ z-index:6; }
+
     .confetti{
       position:fixed; top:50%; left:50%;
       font-size:14px; pointer-events:none;
       transform:translate(-50%,-50%);
       animation:burst var(--dur) ease-out forwards;
       filter:drop-shadow(0 2px 8px rgba(0,0,0,.18));
-      z-index: 6; /* <-- higher than .finale (5) */
     }
     @keyframes burst{
       from{ opacity:1; transform:translate(-50%,-50%) translate(0,0) scale(0.6) rotate(0deg) }
@@ -182,7 +167,6 @@
       animation:rain var(--fall) linear forwards;
       filter:drop-shadow(0 2px 10px rgba(0,0,0,.2));
       pointer-events:none;
-      z-index: 6; /* <-- above overlay */
     }
     @keyframes rain{
       from{transform:translateY(0) rotate(0deg); opacity:1}
@@ -196,7 +180,6 @@
   </style>
 </head>
 <body>
-  <!-- Subtle floating hearts -->
   <div class="background-hearts" id="bg"></div>
 
   <main class="wrap">
@@ -209,19 +192,18 @@
 
       <div class="btns">
         <button id="yes" aria-label="Yes">Yes 💖</button>
-        <button id="no" aria-label="No">No 😜</button>
+        <button id="no" aria-label="No" type="button">No 😜</button>
       </div>
 
       <div class="hint">Pro tip: Try touching/hovering the “No” button 😉</div>
     </section>
   </main>
 
-  <!-- Finale celebration -->
+  <!-- Finale -->
   <section class="finale" id="finale" role="dialog" aria-modal="true" aria-label="Celebration">
     <div>
-      <h1>💖 You are my Valentine now 💖<br>Forever &amp; Always ❤️</h1>
-      <!-- (Removed info line) -->
-      <!-- <p>psst… tap/click anywhere to make more hearts 🎉</p> -->
+      <!-- UPDATED: heart before "Forever" -->
+      <h1>💖 You are my Valentine now 💖<br>💖 Forever &amp; Always ❤️</h1>
     </div>
   </section>
 
@@ -233,7 +215,7 @@
     const bg = document.getElementById('bg');
     const finale = document.getElementById('finale');
 
-    // ------- Typewriter effect -------
+    // ------- Typewriter -------
     const text = `Will you be my Valentine?`;
     let i = 0;
     const typeInterval = setInterval(()=>{
@@ -244,7 +226,7 @@
       }
     }, 55);
 
-    // ------- Floating background hearts -------
+    // ------- Subtle background hearts -------
     function spawnBgHeart(){
       const h = document.createElement('div');
       h.className = 'bg-heart';
@@ -262,63 +244,119 @@
     setInterval(spawnBgHeart, 600);
     for(let k=0;k<12;k++) setTimeout(spawnBgHeart, k*150);
 
-    // ------- Helper: current visible viewport (fixes mobile address bar jumps) -------
-    function getViewportSize() {
-      const vv = window.visualViewport;
-      if (vv) return { w: vv.width, h: vv.height };
-      return { w: window.innerWidth, h: window.innerHeight };
+    // ============ NO BUTTON: NEVER VANISH, ALWAYS DODGE ============
+    // Helpers that respect *visible* viewport (address bar/zoom safe)
+    function vv() {
+      const v = window.visualViewport;
+      if (v) return { w: v.width, h: v.height, ox: v.offsetLeft, oy: v.offsetTop };
+      return { w: window.innerWidth, h: window.innerHeight, ox: 0, oy: 0 };
     }
-
-    // ------- No button: toggle between safe anchors -------
-    const anchors = [
-      {x:0.12,y:0.20},{x:0.82,y:0.22},{x:0.85,y:0.78},{x:0.15,y:0.80},
-      {x:0.50,y:0.18},{x:0.50,y:0.86},{x:0.20,y:0.50},{x:0.80,y:0.50}
-    ];
-    let lastAnchor = -1;
+    const pad = 8;
     let hasMovedOnce = false;
 
-    function moveNo(){
-      // Pick a different anchor than last time
-      let idx;
-      do { idx = Math.floor(Math.random()*anchors.length); } while (idx === lastAnchor);
-      lastAnchor = idx;
-      const a = anchors[idx];
+    // Central function to place/clamp the button
+    function placeNo(x, y){
+      const { w, h, ox, oy } = vv();
+      const bw = noBtn.offsetWidth || 100;
+      const bh = noBtn.offsetHeight || 44;
 
-      const { w, h } = getViewportSize();
-      const btnW = noBtn.offsetWidth || 100;
-      const btnH = noBtn.offsetHeight || 44;
-      let x = a.x * w - btnW/2;
-      let y = a.y * h - btnH/2;
+      // Clamp to visible viewport, then offset by visual viewport origin
+      const cx = Math.max(pad, Math.min(x, w - bw - pad)) + ox;
+      const cy = Math.max(pad, Math.min(y, h - bh - pad)) + oy;
 
-      const pad = 8;
-      x = Math.max(pad, Math.min(x, w - btnW - pad));
-      y = Math.max(pad, Math.min(y, h - btnH - pad));
-
-      // Switch to fixed after first move so it can roam anywhere
-      if (!hasMovedOnce) {
+      if (!hasMovedOnce){
         hasMovedOnce = true;
         noBtn.style.position = 'fixed';
+        noBtn.style.transform = 'none'; // remove translate(-50%,0)
       }
-      noBtn.style.left = x + 'px';
-      noBtn.style.top = y + 'px';
-      // Replace initial translate with a fun tilt; ensures it never flies off due to translate(-50%,0)
-      noBtn.style.transform = 'rotate(' + (Math.random()<0.5 ? -8 : 8) + 'deg)';
+      noBtn.style.left = cx + 'px';
+      noBtn.style.top  = cy + 'px';
+      noBtn.style.transform = 'rotate(' + (Math.random()<0.5 ? -10 : 10) + 'deg)';
     }
 
-    // Re-clamp when the viewport changes (mobile address bar, rotation, etc.)
-    const reclamp = () => { if (hasMovedOnce) moveNo(); };
+    // Pick a random on-screen spot
+    function randomSpot(){
+      const { w, h } = vv();
+      const bw = noBtn.offsetWidth || 100;
+      const bh = noBtn.offsetHeight || 44;
+      const x = Math.random() * (w - bw - pad*2) + pad;
+      const y = Math.random() * (h - bh - pad*2) + pad;
+      return { x, y };
+    }
+
+    // Move "No" away from the pointer (also on hover/touch/focus)
+    function dodge(e){
+      const r = noBtn.getBoundingClientRect();
+      const px = (e && 'clientX' in e) ? e.clientX : r.left + r.width/2;
+      const py = (e && 'clientY' in e) ? e.clientY : r.top + r.height/2;
+
+      // Move opposite to pointer (vector push), then clamp
+      const cx = r.left + r.width/2;
+      const cy = r.top  + r.height/2;
+      const dx = cx - px;
+      const dy = cy - py;
+      const len = Math.max(1, Math.hypot(dx, dy));
+      const push = 160 + Math.random()*120;
+      const nx = cx + (dx/len) * push;
+      const ny = cy + (dy/len) * push;
+
+      // Convert target center to top-left desired position
+      placeNo(nx - r.width/2, ny - r.height/2);
+    }
+
+    // Keep in bounds even if viewport changes after we moved it
+    function reClampIfNeeded(){
+      if (!hasMovedOnce) return;
+      const r = noBtn.getBoundingClientRect();
+      const { w, h, ox, oy } = vv();
+      let x = r.left - ox;
+      let y = r.top  - oy;
+      let changed = false;
+
+      const bw = r.width, bh = r.height;
+      if (x < pad) { x = pad; changed = true; }
+      if (y < pad) { y = pad; changed = true; }
+      if (x > w - bw - pad) { x = w - bw - pad; changed = true; }
+      if (y > h - bh - pad) { y = h - bh - pad; changed = true; }
+      if (changed) placeNo(x, y);
+    }
+
+    // Event wiring (robust & non-clickable)
+    noBtn.addEventListener('mouseenter', dodge);
+    noBtn.addEventListener('focus', dodge);
+    noBtn.addEventListener('pointermove', (e)=>{
+      // If pointer comes within 72px radius, dodge
+      const r = noBtn.getBoundingClientRect();
+      const cx = r.left + r.width/2;
+      const cy = r.top  + r.height/2;
+      const d = Math.hypot((e.clientX - cx), (e.clientY - cy));
+      if (d < 72) dodge(e);
+    }, {passive:true});
+    noBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); dodge(e); }, {passive:false});
+    noBtn.addEventListener('pointerdown', (e)=>{ e.preventDefault(); dodge(e); }); // blocks click
+    noBtn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); dodge(e); });
+
+    // Auto-dodge periodically so it keeps moving "here and there"
+    setInterval(()=> {
+      const { x, y } = randomSpot();
+      placeNo(x, y);
+    }, 2200);
+
+    // First placement (still centered as absolute; move once shortly)
+    setTimeout(()=> {
+      const { x, y } = randomSpot();
+      placeNo(x, y);
+    }, 400);
+
+    // Re-clamp when the visible viewport changes (mobile URL bar, rotation)
+    const reclamp = () => reClampIfNeeded();
     window.addEventListener('resize', reclamp, { passive: true });
     if (window.visualViewport){
       visualViewport.addEventListener('resize', reclamp);
       visualViewport.addEventListener('scroll', reclamp);
     }
 
-    // Trigger move on hover/touch/focus
-    noBtn.addEventListener('mouseenter', moveNo);
-    noBtn.addEventListener('focus', moveNo);
-    noBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); moveNo(); }, {passive:false});
-
-    // ------- Sparkles around Yes on hover -------
+    // ------- Yes button sparkle -------
     yesBtn.addEventListener('mousemove', (e)=>{
       const rect = yesBtn.getBoundingClientRect();
       const sparkle = document.createElement('span');
@@ -333,7 +371,7 @@
       setTimeout(()=>sparkle.remove(), 900);
     });
 
-    // ------- Finale: confetti + rain (now above overlay) -------
+    // ------- Finale effects (above overlay) -------
     function heartsBurst(cx, cy, n=120){
       for(let i=0;i<n;i++){
         const s = document.createElement('div');
@@ -341,16 +379,12 @@
         s.textContent = Math.random()<.5 ? '💖':'💘';
         const angle = Math.random()*Math.PI*2;
         const dist = 80 + Math.random()*180;
-        const tx = Math.cos(angle)*dist + 'px';
-        const ty = Math.sin(angle)*dist + 'px';
-        const rot = (Math.random()*720 - 360) + 'deg';
-        const dur = (0.6 + Math.random()*0.8) + 's';
         s.style.left = cx + 'px';
-        s.style.top = cy + 'px';
-        s.style.setProperty('--tx', tx);
-        s.style.setProperty('--ty', ty);
-        s.style.setProperty('--rot', rot);
-        s.style.setProperty('--dur', dur);
+        s.style.top  = cy + 'px';
+        s.style.setProperty('--tx', (Math.cos(angle)*dist) + 'px');
+        s.style.setProperty('--ty', (Math.sin(angle)*dist) + 'px');
+        s.style.setProperty('--rot', (Math.random()*720 - 360) + 'deg');
+        s.style.setProperty('--dur', (0.6 + Math.random()*0.8) + 's');
         document.body.appendChild(s);
         setTimeout(()=>s.remove(), 1800);
       }
@@ -373,30 +407,14 @@
       const cy = e?.clientY ?? window.innerHeight/2;
       heartsBurst(cx, cy, 130);
       heartsRain(34);
-
-      // Optional: show a small toast "Cheers!"
-      // remove this if you don't want any text popup
-      setTimeout(()=>{
-        const toast = document.createElement('div');
-        toast.textContent = 'Cheers! 🎉';
-        Object.assign(toast.style, {
-          position:'fixed', left:'50%', bottom:'8vh', transform:'translateX(-50%)',
-          padding:'10px 16px', borderRadius:'999px', background:'rgba(0,0,0,.55)',
-          color:'#fff', fontWeight:'600', boxShadow:'0 6px 18px rgba(0,0,0,.25)', zIndex:7,
-          transition:'opacity .6s ease', opacity:'1'
-        });
-        document.body.appendChild(toast);
-        setTimeout(()=> toast.style.opacity='0', 1200);
-        setTimeout(()=> toast.remove(), 2000);
-      }, 350);
     }
     yesBtn.addEventListener('click', yesClicked);
     yesBtn.addEventListener('keyup', (e)=>{ if(e.key==='Enter' || e.key===' ') yesClicked(e); });
 
-    // Make more bursts when clicking finale overlay
+    // More bursts on overlay click
     finale.addEventListener('click', (e)=> heartsBurst(e.clientX, e.clientY, 90));
 
-    // Cursor heart trail (subtle)
+    // Cursor heart trail
     let lastTrail = 0;
     window.addEventListener('mousemove', (e)=>{
       const now = performance.now();
@@ -406,7 +424,7 @@
       s.className = 'confetti';
       s.textContent = '💗';
       s.style.left = e.clientX + 'px';
-      s.style.top = e.clientY + 'px';
+      s.style.top  = e.clientY + 'px';
       s.style.setProperty('--tx', (Math.random()*40-20)+'px');
       s.style.setProperty('--ty', (-40 - Math.random()*30)+'px');
       s.style.setProperty('--rot', (Math.random()*120-60)+'deg');
