@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Be My Valentine ❤️</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <!-- Cute font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet" />
 
@@ -67,6 +68,7 @@
       width:min(92vw,720px);
       background:rgba(255,255,255,.35);
       backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border-radius:24px;
       box-shadow:var(--shadow);
       padding:32px 28px 40px;
@@ -115,6 +117,7 @@
       box-shadow:0 6px 14px rgba(0,0,0,.15);
       z-index:10000; /* keep above card */
       transition:left .18s ease, top .18s ease, transform .18s ease;
+      will-change: left, top, transform;
     }
 
     .hint{
@@ -126,7 +129,7 @@
       position:absolute; width:10px; height:10px; border-radius:50%;
       background:#fff; pointer-events:none; opacity:0;
       animation:spark .8s ease forwards;
-      filter:drop-shadow(0 0 8px rgba(255,255,255,.9));
+      filter:drop-shadow(0 0 8px rgba(0,0,0,.9));
     }
     @keyframes spark{
       0%{opacity:1; transform:translate(var(--sx), var(--sy)) scale(0)}
@@ -153,30 +156,33 @@
     @keyframes popIn{
       to{opacity:1; transform:translateY(0) scale(1)}
     }
-    .finale p{
-      margin:14px 0 0; opacity:.95; font-weight:600;
-    }
 
-    /* Confetti hearts */
+    /* (Removed the "psst..." line)
+       If you still keep a <p> there, this hides it:
+    */
+    .finale p{ display:none; }
+
+    /* Confetti hearts ABOVE the overlay */
     .confetti{
       position:fixed; top:50%; left:50%;
       font-size:14px; pointer-events:none;
       transform:translate(-50%,-50%);
       animation:burst var(--dur) ease-out forwards;
       filter:drop-shadow(0 2px 8px rgba(0,0,0,.18));
+      z-index: 6; /* <-- higher than .finale (5) */
     }
     @keyframes burst{
       from{ opacity:1; transform:translate(-50%,-50%) translate(0,0) scale(0.6) rotate(0deg) }
       to{ opacity:0; transform:translate(-50%,-50%) translate(var(--tx),var(--ty)) scale(1.4) rotate(var(--rot)) }
     }
 
-    /* Rain of big hearts after burst */
     .rain-heart{
       position:fixed; top:-10vh;
       font-size:clamp(18px, 4vw, 34px);
       animation:rain var(--fall) linear forwards;
       filter:drop-shadow(0 2px 10px rgba(0,0,0,.2));
       pointer-events:none;
+      z-index: 6; /* <-- above overlay */
     }
     @keyframes rain{
       from{transform:translateY(0) rotate(0deg); opacity:1}
@@ -214,7 +220,8 @@
   <section class="finale" id="finale" role="dialog" aria-modal="true" aria-label="Celebration">
     <div>
       <h1>💖 You are my Valentine now 💖<br>Forever &amp; Always ❤️</h1>
-      <p>psst… tap/click anywhere to make more hearts 🎉</p>
+      <!-- (Removed info line) -->
+      <!-- <p>psst… tap/click anywhere to make more hearts 🎉</p> -->
     </div>
   </section>
 
@@ -255,8 +262,14 @@
     setInterval(spawnBgHeart, 600);
     for(let k=0;k<12;k++) setTimeout(spawnBgHeart, k*150);
 
+    // ------- Helper: current visible viewport (fixes mobile address bar jumps) -------
+    function getViewportSize() {
+      const vv = window.visualViewport;
+      if (vv) return { w: vv.width, h: vv.height };
+      return { w: window.innerWidth, h: window.innerHeight };
+    }
+
     // ------- No button: toggle between safe anchors -------
-    // Predefined anchors in viewport percentages to avoid leaving screen
     const anchors = [
       {x:0.12,y:0.20},{x:0.82,y:0.22},{x:0.85,y:0.78},{x:0.15,y:0.80},
       {x:0.50,y:0.18},{x:0.50,y:0.86},{x:0.20,y:0.50},{x:0.80,y:0.50}
@@ -271,14 +284,15 @@
       lastAnchor = idx;
       const a = anchors[idx];
 
+      const { w, h } = getViewportSize();
       const btnW = noBtn.offsetWidth || 100;
       const btnH = noBtn.offsetHeight || 44;
-      let x = a.x * window.innerWidth - btnW/2;
-      let y = a.y * window.innerHeight - btnH/2;
+      let x = a.x * w - btnW/2;
+      let y = a.y * h - btnH/2;
 
       const pad = 8;
-      x = Math.max(pad, Math.min(x, window.innerWidth - btnW - pad));
-      y = Math.max(pad, Math.min(y, window.innerHeight - btnH - pad));
+      x = Math.max(pad, Math.min(x, w - btnW - pad));
+      y = Math.max(pad, Math.min(y, h - btnH - pad));
 
       // Switch to fixed after first move so it can roam anywhere
       if (!hasMovedOnce) {
@@ -287,8 +301,16 @@
       }
       noBtn.style.left = x + 'px';
       noBtn.style.top = y + 'px';
-      // Keep size/visibility steady (no shrinking)
+      // Replace initial translate with a fun tilt; ensures it never flies off due to translate(-50%,0)
       noBtn.style.transform = 'rotate(' + (Math.random()<0.5 ? -8 : 8) + 'deg)';
+    }
+
+    // Re-clamp when the viewport changes (mobile address bar, rotation, etc.)
+    const reclamp = () => { if (hasMovedOnce) moveNo(); };
+    window.addEventListener('resize', reclamp, { passive: true });
+    if (window.visualViewport){
+      visualViewport.addEventListener('resize', reclamp);
+      visualViewport.addEventListener('scroll', reclamp);
     }
 
     // Trigger move on hover/touch/focus
@@ -311,7 +333,7 @@
       setTimeout(()=>sparkle.remove(), 900);
     });
 
-    // ------- Finale: confetti + rain -------
+    // ------- Finale: confetti + rain (now above overlay) -------
     function heartsBurst(cx, cy, n=120){
       for(let i=0;i<n;i++){
         const s = document.createElement('div');
@@ -351,6 +373,22 @@
       const cy = e?.clientY ?? window.innerHeight/2;
       heartsBurst(cx, cy, 130);
       heartsRain(34);
+
+      // Optional: show a small toast "Cheers!"
+      // remove this if you don't want any text popup
+      setTimeout(()=>{
+        const toast = document.createElement('div');
+        toast.textContent = 'Cheers! 🎉';
+        Object.assign(toast.style, {
+          position:'fixed', left:'50%', bottom:'8vh', transform:'translateX(-50%)',
+          padding:'10px 16px', borderRadius:'999px', background:'rgba(0,0,0,.55)',
+          color:'#fff', fontWeight:'600', boxShadow:'0 6px 18px rgba(0,0,0,.25)', zIndex:7,
+          transition:'opacity .6s ease', opacity:'1'
+        });
+        document.body.appendChild(toast);
+        setTimeout(()=> toast.style.opacity='0', 1200);
+        setTimeout(()=> toast.remove(), 2000);
+      }, 350);
     }
     yesBtn.addEventListener('click', yesClicked);
     yesBtn.addEventListener('keyup', (e)=>{ if(e.key==='Enter' || e.key===' ') yesClicked(e); });
