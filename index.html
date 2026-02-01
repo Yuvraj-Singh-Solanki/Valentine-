@@ -5,15 +5,15 @@
   <title>Be My Valentine ❤️</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!-- Cute font -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet" />
 
   <!-- Share preview (optional) -->
-  <meta property="og:title" content="Be My Valentine ❤️">
-  <meta property="og:description" content="I made something just for you.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://yuvraj-singh-solanki.github.io/Valentine-/">
-  <meta property="og:image" content="https://yuvraj-singh-solanki.github.io/Valentine-/valentine-cover.jpg">
-  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:title" content="Be My Valentine ❤️" />
+  <meta property="og:description" content="I made something just for you." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://yuvraj-singh-solanki.github.io/Valentine-/" />
+  <meta property="og:image" content="https://yuvraj-singh-solanki.github.io/Valentine-/valentine-cover.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
 
   <style>
     :root{
@@ -23,7 +23,6 @@
       --bg4:#ffafbd;
       --primary:#ff4b6e;
       --shadow:0 10px 25px rgba(0,0,0,.18);
-      --glass:rgba(255,255,255,.2);
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -32,7 +31,6 @@
       font-family:Poppins, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:#222;
       overflow:hidden;
-      /* Animated gradient */
       background:linear-gradient(120deg,var(--bg1),var(--bg2),var(--bg3),var(--bg4));
       background-size:300% 300%;
       animation:bgMove 15s ease infinite;
@@ -43,7 +41,7 @@
       100%{background-position:0% 50%}
     }
 
-    /* Floating subtle hearts in the back */
+    /* Subtle floating hearts */
     .background-hearts{
       position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;
     }
@@ -78,7 +76,7 @@
     }
 
     .ribbon{
-      position:absolute; inset:auto -40px  -40px auto;
+      position:absolute; inset:auto -40px -40px auto;
       transform:rotate(-12deg);
       font-weight:800; font-size:92px; color:rgba(255,255,255,.25);
       pointer-events:none; user-select:none;
@@ -92,9 +90,6 @@
       display:inline-block; border-right:3px solid #c9164c;
       white-space:nowrap; overflow:hidden;
       will-change:width;
-    }
-    .subtitle{
-      margin:4px 0 22px; color:#7b0d31; font-weight:600;
     }
 
     .btns{
@@ -113,10 +108,13 @@
     #yes:hover{ transform:translateY(-2px) scale(1.05) }
     #yes:active{ transform:translateY(0) scale(.98) }
 
+    /* Start centered; will switch to fixed when it moves */
     #no{
       background:#e6e6e6; color:#333; position:absolute; left:50%; top:64px;
       transform:translate(-50%,0);
       box-shadow:0 6px 14px rgba(0,0,0,.15);
+      z-index:10000; /* keep above card */
+      transition:left .18s ease, top .18s ease, transform .18s ease;
     }
 
     .hint{
@@ -185,12 +183,6 @@
       to{transform:translateY(120vh) rotate(360deg); opacity:0.9}
     }
 
-    /* Small footer credit / share */
-    .footer{
-      margin-top:18px; font-size:12px; color:#5e0f28; opacity:.9;
-    }
-
-    /* Responsive nudge */
     @media (max-width:520px){
       .btns{ height:150px }
       #no{ top:86px }
@@ -208,15 +200,13 @@
       <h1 class="title">
         <span id="type" class="type" aria-label="Will you be my Valentine?">‎</span>
       </h1>
-      <div class="subtitle" id="tagline">For <strong>JUHI</strong> — from <strong>YUVRAJ</strong></div>
 
       <div class="btns">
         <button id="yes" aria-label="Yes">Yes 💖</button>
         <button id="no" aria-label="No">No 😜</button>
       </div>
-      <div class="hint">Pro tip: Try touching/hovering the “No” button 😉</div>
 
-      <div class="footer">Made with ❤️ and a little bit of JavaScript magic</div>
+      <div class="hint">Pro tip: Try touching/hovering the “No” button 😉</div>
     </section>
   </main>
 
@@ -229,25 +219,15 @@
   </section>
 
   <script>
-    // ------------- Config (optional) -------------
-    const PARTNER_NAME = 'JUHI';
-    const YOUR_NAME = 'YUVRAJ';
-    // --------------------------------------------
-
+    // Elements
     const noBtn = document.getElementById('no');
     const yesBtn = document.getElementById('yes');
     const typeEl = document.getElementById('type');
-    const tag = document.getElementById('tagline');
     const bg = document.getElementById('bg');
     const finale = document.getElementById('finale');
 
-    // Set names if provided
-    if (PARTNER_NAME !== 'YOUR_PARTNER_NAME' || YOUR_NAME !== 'YOUR_NAME') {
-      tag.innerHTML = `For <strong>${PARTNER_NAME}</strong> — from <strong>${YOUR_NAME}</strong>`;
-    }
-
     // ------- Typewriter effect -------
-    const text = `Will you be my Valentine, ${PARTNER_NAME !== 'YOUR_PARTNER_NAME' ? PARTNER_NAME : '❤️'}?`;
+    const text = `Will you be my Valentine?`;
     let i = 0;
     const typeInterval = setInterval(()=>{
       typeEl.textContent = text.slice(0, ++i);
@@ -273,42 +253,48 @@
       setTimeout(()=> h.remove(), dur*1000 + 200);
     }
     setInterval(spawnBgHeart, 600);
-    for(let k=0;k<12;k++) setTimeout(spawnBgHeart, k*150); // start a few immediately
+    for(let k=0;k<12;k++) setTimeout(spawnBgHeart, k*150);
 
-    // ------- Cheeky No button behavior -------
-    let attempts = 0;
+    // ------- No button: toggle between safe anchors -------
+    // Predefined anchors in viewport percentages to avoid leaving screen
+    const anchors = [
+      {x:0.12,y:0.20},{x:0.82,y:0.22},{x:0.85,y:0.78},{x:0.15,y:0.80},
+      {x:0.50,y:0.18},{x:0.50,y:0.86},{x:0.20,y:0.50},{x:0.80,y:0.50}
+    ];
+    let lastAnchor = -1;
+    let hasMovedOnce = false;
+
     function moveNo(){
-      attempts++;
-      // Grow "Yes", shrink "No"
-      const grow = 1 + Math.min(.08*attempts, .9);
-      yesBtn.style.transform = `translateY(-2px) scale(${grow})`;
+      // Pick a different anchor than last time
+      let idx;
+      do { idx = Math.floor(Math.random()*anchors.length); } while (idx === lastAnchor);
+      lastAnchor = idx;
+      const a = anchors[idx];
 
-      const shrink = Math.max(0.7 - attempts*0.04, 0.45);
-
-      // Find new safe position for No within viewport
       const btnW = noBtn.offsetWidth || 100;
       const btnH = noBtn.offsetHeight || 44;
-      const pad = 10;
-      const maxX = window.innerWidth - btnW - pad;
-      const maxY = window.innerHeight - btnH - pad;
+      let x = a.x * window.innerWidth - btnW/2;
+      let y = a.y * window.innerHeight - btnH/2;
 
-      const x = Math.random() * maxX + pad;
-      const y = Math.random() * maxY + pad;
+      const pad = 8;
+      x = Math.max(pad, Math.min(x, window.innerWidth - btnW - pad));
+      y = Math.max(pad, Math.min(y, window.innerHeight - btnH - pad));
 
-      // Switch to fixed positioning and set pixel coords
-      noBtn.style.position = 'fixed';
+      // Switch to fixed after first move so it can roam anywhere
+      if (!hasMovedOnce) {
+        hasMovedOnce = true;
+        noBtn.style.position = 'fixed';
+      }
       noBtn.style.left = x + 'px';
       noBtn.style.top = y + 'px';
-      // IMPORTANT: remove the initial translate(-50%, 0) when we start moving
-      noBtn.style.transform = `scale(${shrink}) rotate(${(attempts%2? -8: 8)}deg)`;
-
-      // Fun quips
-      const quips = ['Nice try 😜', 'Too slow! 🤭', 'Catch me! 🏃‍♀️💨', 'Awww c’mon 😅'];
-      if (attempts % 2 === 0) noBtn.textContent = quips[(attempts/2) % quips.length];
+      // Keep size/visibility steady (no shrinking)
+      noBtn.style.transform = 'rotate(' + (Math.random()<0.5 ? -8 : 8) + 'deg)';
     }
-    // Mouse & touch
+
+    // Trigger move on hover/touch/focus
     noBtn.addEventListener('mouseenter', moveNo);
-    noBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); moveNo(); });
+    noBtn.addEventListener('focus', moveNo);
+    noBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); moveNo(); }, {passive:false});
 
     // ------- Sparkles around Yes on hover -------
     yesBtn.addEventListener('mousemove', (e)=>{
@@ -353,14 +339,12 @@
         h.className = 'rain-heart';
         h.textContent = ['💖','❤️','💕','💘'][i%4];
         h.style.left = (Math.random()*100)+'vw';
-        // set CSS var used in animation
         h.style.setProperty('--fall', (4 + Math.random()*5) + 's');
         document.body.appendChild(h);
         setTimeout(()=>h.remove(), 9000);
       }
     }
 
-    // ------- Yes click -> show finale -------
     function yesClicked(e){
       finale.classList.add('show');
       const cx = e?.clientX ?? window.innerWidth/2;
@@ -369,17 +353,12 @@
       heartsRain(34);
     }
     yesBtn.addEventListener('click', yesClicked);
-
-    // Extra: more bursts on clicks in the finale
-    finale.addEventListener('click', (e)=>{
-      heartsBurst(e.clientX, e.clientY, 90);
-    });
-
-    // Accessibility
-    noBtn.addEventListener('focus', moveNo);
     yesBtn.addEventListener('keyup', (e)=>{ if(e.key==='Enter' || e.key===' ') yesClicked(e); });
 
-    // ------- Cursor heart trail (subtle) -------
+    // Make more bursts when clicking finale overlay
+    finale.addEventListener('click', (e)=> heartsBurst(e.clientX, e.clientY, 90));
+
+    // Cursor heart trail (subtle)
     let lastTrail = 0;
     window.addEventListener('mousemove', (e)=>{
       const now = performance.now();
