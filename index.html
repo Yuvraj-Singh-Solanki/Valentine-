@@ -5,8 +5,16 @@
   <title>Be My Valentine ❤️</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <!-- Cute font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet" />
+
+  <!-- Share preview (optional) -->
+  <meta property="og:title" content="Be My Valentine ❤️" />
+  <meta property="og:description" content="I made something just for you." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://yuvraj-singh-solanki.github.io/Valentine-/" />
+  <meta property="og:image" content="https://yuvraj-singh-solanki.github.io/Valentine-/valentine-cover.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
 
   <style>
     :root{
@@ -17,189 +25,413 @@
       --primary:#ff4b6e;
       --shadow:0 10px 25px rgba(0,0,0,.18);
     }
-
     *{box-sizing:border-box}
     html,body{height:100%}
-
     body{
       margin:0;
-      font-family:Poppins, Arial, sans-serif;
+      font-family:Poppins, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:#222;
       overflow:hidden;
       background:linear-gradient(120deg,var(--bg1),var(--bg2),var(--bg3),var(--bg4));
       background-size:300% 300%;
       animation:bgMove 15s ease infinite;
     }
-
     @keyframes bgMove{
       0%{background-position:0% 50%}
       50%{background-position:100% 50%}
       100%{background-position:0% 50%}
     }
 
-    /* Floating background hearts */
     .background-hearts{
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      z-index:0;
+      position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;
     }
-
     .bg-heart{
-      position:absolute;
-      bottom:-10vh;
-      font-size:20px;
-      opacity:.7;
-      animation:floatUp linear forwards;
+      position:absolute; color:rgba(255,255,255,.55);
+      font-size:12px; animation:floatUp linear forwards;
+      filter:drop-shadow(0 2px 6px rgba(0,0,0,.15));
     }
-
     @keyframes floatUp{
-      to{
-        transform:translateY(-120vh);
-        opacity:0;
-      }
+      from{transform:translateY(0) scale(.9); opacity:.7}
+      to{transform:translateY(-115vh) scale(1.2); opacity:0}
     }
 
     .wrap{
-      position:relative;
-      z-index:1;
+      position:relative; z-index:1;
       min-height:100%;
-      display:flex;
-      justify-content:center;
-      align-items:center;
+      display:flex; align-items:center; justify-content:center;
       padding:24px;
     }
-
     .card{
-      width:min(92vw,480px);
+      position:relative;
+      width:min(92vw,720px);
       background:rgba(255,255,255,.35);
-      backdrop-filter:blur(10px);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border-radius:24px;
-      padding:32px;
-      text-align:center;
       box-shadow:var(--shadow);
-    }
-
-    h1{
-      color:#c9164c;
-      margin-bottom:12px;
-    }
-
-    .btns{
-      margin-top:20px;
-    }
-
-    button{
-      font-family:inherit;
-      font-size:18px;
-      padding:12px 26px;
-      border:none;
-      border-radius:30px;
-      cursor:pointer;
-      margin:12px;
-    }
-
-    #yes{
-      background:var(--primary);
-      color:white;
-      box-shadow:0 6px 18px rgba(255,75,110,.45);
-    }
-
-    /* IMPORTANT: FIXED POSITION */
-    #no{
-      background:#e6e6e6;
-      color:#333;
-      position:fixed;
-      left:50%;
-      top:60%;
-      transform:translate(-50%,-50%);
-      box-shadow:0 6px 14px rgba(0,0,0,.15);
-      z-index:9999;
-    }
-
-    /* Finale screen */
-    .finale{
-      position:fixed;
-      inset:0;
-      display:none;
-      justify-content:center;
-      align-items:center;
+      padding:32px 28px 40px;
       text-align:center;
-      color:white;
-      background:linear-gradient(135deg,#ff758c,#ff7eb3);
-      z-index:5;
+      border:1px solid rgba(255,255,255,.55);
+      overflow:hidden;
+    }
+    .ribbon{
+      position:absolute; inset:auto -40px -40px auto;
+      transform:rotate(-12deg);
+      font-weight:800; font-size:92px; color:rgba(255,255,255,.25);
+      pointer-events:none; user-select:none;
+    }
+    .title{
+      margin:0 0 8px 0; font-size:28px; line-height:1.25; color:#c9164c;
+      text-shadow:0 1px 0 rgba(255,255,255,.6);
+    }
+    .type{
+      display:inline-block; border-right:3px solid #c9164c;
+      white-space:nowrap; overflow:hidden;
+      will-change:width;
     }
 
-    .finale.show{
-      display:flex;
+    .btns{ position:relative; margin-top:16px; height:120px; }
+    button{
+      font-family:inherit; font-weight:600;
+      padding:12px 26px; font-size:18px;
+      border:none; border-radius:28px; cursor:pointer;
+      transition:transform .15s ease, box-shadow .15s ease, background .2s ease;
+      user-select:none;
+    }
+    #yes{
+      background:var(--primary); color:#fff; box-shadow:0 6px 18px rgba(255,75,110,.45);
+    }
+    #yes:hover{ transform:translateY(-2px) scale(1.05) }
+    #yes:active{ transform:translateY(0) scale(.98) }
+
+    /* Start centered; switches to fixed at first move */
+    #no{
+      background:#e6e6e6; color:#333; position:absolute; left:50%; top:64px;
+      transform:translate(-50%,0); /* removed after first move */
+      box-shadow:0 6px 14px rgba(0,0,0,.15);
+      z-index:10000;
+      transition:left .18s ease, top .18s ease, transform .18s ease;
+      will-change:left, top, transform;
+      touch-action:none; /* so touchstart fires reliably */
+    }
+
+    .hint{ margin-top:6px; font-size:13px; color:#7b0d31; opacity:.9; }
+
+    .sparkle{
+      position:absolute; width:10px; height:10px; border-radius:50%;
+      background:#fff; pointer-events:none; opacity:0;
+      animation:spark .8s ease forwards;
+      filter:drop-shadow(0 0 8px rgba(0,0,0,.9));
+    }
+    @keyframes spark{
+      0%{opacity:1; transform:translate(var(--sx), var(--sy)) scale(0)}
+      90%{opacity:1}
+      100%{opacity:0; transform:translate(calc(var(--sx)*2), calc(var(--sy)*2)) scale(1)}
+    }
+
+    .finale{
+      position:fixed; inset:0; display:none; place-items:center;
+      text-align:center; color:#fff; z-index:5; overflow:hidden;
+      background:radial-gradient(ellipse at center, rgba(0,0,0,.15), rgba(0,0,0,.35)),
+                 linear-gradient(135deg,#ff758c,#ff7eb3 55%, #ffafbd);
+      animation:bgMove 16s ease infinite;
+    }
+    .finale.show{ display:grid; }
+    .finale h1{
+      font-size:clamp(28px, 6vw, 56px);
+      margin:0 16px; line-height:1.15; text-shadow:0 6px 22px rgba(0,0,0,.2);
+      animation:popIn .7s cubic-bezier(.2,.8,.2,1) forwards;
+      opacity:0; transform:translateY(12px) scale(.96);
+    }
+    @keyframes popIn{ to{opacity:1; transform:translateY(0) scale(1)} }
+    .finale p{ display:none; }
+
+    /* Confetti / rain ABOVE the overlay */
+    .confetti, .rain-heart{ z-index:6; }
+
+    .confetti{
+      position:fixed; top:50%; left:50%;
+      font-size:14px; pointer-events:none;
+      transform:translate(-50%,-50%);
+      animation:burst var(--dur) ease-out forwards;
+      filter:drop-shadow(0 2px 8px rgba(0,0,0,.18));
+    }
+    @keyframes burst{
+      from{ opacity:1; transform:translate(-50%,-50%) translate(0,0) scale(0.6) rotate(0deg) }
+      to{ opacity:0; transform:translate(-50%,-50%) translate(var(--tx),var(--ty)) scale(1.4) rotate(var(--rot)) }
+    }
+
+    .rain-heart{
+      position:fixed; top:-10vh;
+      font-size:clamp(18px, 4vw, 34px);
+      animation:rain var(--fall) linear forwards;
+      filter:drop-shadow(0 2px 10px rgba(0,0,0,.2));
+      pointer-events:none;
+    }
+    @keyframes rain{
+      from{transform:translateY(0) rotate(0deg); opacity:1}
+      to{transform:translateY(120vh) rotate(360deg); opacity:0.9}
+    }
+
+    @media (max-width:520px){
+      .btns{ height:150px }
+      #no{ top:86px }
     }
   </style>
 </head>
-
 <body>
+  <div class="background-hearts" id="bg"></div>
 
-<!-- Floating hearts -->
-<div class="background-hearts" id="bg"></div>
+  <main class="wrap">
+    <section class="card" aria-live="polite">
+      <div class="ribbon">❤️</div>
 
-<div class="wrap">
-  <div class="card">
-    <h1>Will you be my Valentine? 💖</h1>
+      <h1 class="title">
+        <span id="type" class="type" aria-label="Will you be my Valentine?">‎</span>
+      </h1>
 
-    <div class="btns">
-      <button id="yes">Yes 💖</button>
-      <button id="no">No 😜</button>
+      <div class="btns">
+        <button id="yes" aria-label="Yes">Yes 💖</button>
+        <button id="no" aria-label="No" type="button">No 😜</button>
+      </div>
+
+      <div class="hint">Pro tip: Try touching/hovering the “No” button 😉</div>
+    </section>
+  </main>
+
+  <!-- Finale -->
+  <section class="finale" id="finale" role="dialog" aria-modal="true" aria-label="Celebration">
+    <div>
+      <!-- UPDATED: heart before "Forever" -->
+      <h1>💖 You are my Valentine now 💖<br>💖 Forever &amp; Always ❤️</h1>
     </div>
-  </div>
-</div>
+  </section>
 
-<!-- Finale -->
-<div class="finale" id="finale">
-  <h1>💖 You are my Valentine now 💖<br><br>Forever & Always ❤️</h1>
-</div>
+  <script>
+    // Elements
+    const noBtn = document.getElementById('no');
+    const yesBtn = document.getElementById('yes');
+    const typeEl = document.getElementById('type');
+    const bg = document.getElementById('bg');
+    const finale = document.getElementById('finale');
 
-<script>
-  const noBtn = document.getElementById("no");
-  const yesBtn = document.getElementById("yes");
-  const finale = document.getElementById("finale");
-  const bg = document.getElementById("bg");
+    // ------- Typewriter -------
+    const text = `Will you be my Valentine?`;
+    let i = 0;
+    const typeInterval = setInterval(()=>{
+      typeEl.textContent = text.slice(0, ++i);
+      if (i >= text.length){
+        clearInterval(typeInterval);
+        typeEl.style.borderRight = '0';
+      }
+    }, 55);
 
-  /* NO BUTTON LOGIC (SIMPLE & WORKING) */
-  function moveNoButton() {
-    const padding = 20;
-    const bw = noBtn.offsetWidth;
-    const bh = noBtn.offsetHeight;
+    // ------- Subtle background hearts -------
+    function spawnBgHeart(){
+      const h = document.createElement('div');
+      h.className = 'bg-heart';
+      h.textContent = Math.random() < .75 ? '💖' : (Math.random()<.5 ? '❤️' : '💘');
+      const size = 10 + Math.random()*26;
+      const left = Math.random()*100;
+      const dur = 6 + Math.random()*8;
+      h.style.left = left + 'vw';
+      h.style.bottom = '-8vh';
+      h.style.fontSize = size + 'px';
+      h.style.animationDuration = dur + 's';
+      bg.appendChild(h);
+      setTimeout(()=> h.remove(), dur*1000 + 200);
+    }
+    setInterval(spawnBgHeart, 600);
+    for(let k=0;k<12;k++) setTimeout(spawnBgHeart, k*150);
 
-    const x = Math.random() * (window.innerWidth - bw - padding);
-    const y = Math.random() * (window.innerHeight - bh - padding);
+    // ============ NO BUTTON: NEVER VANISH, ALWAYS DODGE ============
+    // Helpers that respect *visible* viewport (address bar/zoom safe)
+    function vv() {
+      const v = window.visualViewport;
+      if (v) return { w: v.width, h: v.height, ox: v.offsetLeft, oy: v.offsetTop };
+      return { w: window.innerWidth, h: window.innerHeight, ox: 0, oy: 0 };
+    }
+    const pad = 8;
+    let hasMovedOnce = false;
 
-    noBtn.style.left = x + "px";
-    noBtn.style.top = y + "px";
-  }
+    // Central function to place/clamp the button
+    function placeNo(x, y){
+      const { w, h, ox, oy } = vv();
+      const bw = noBtn.offsetWidth || 100;
+      const bh = noBtn.offsetHeight || 44;
 
-  noBtn.addEventListener("mouseover", moveNoButton);
-  noBtn.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    moveNoButton();
-  });
+      // Clamp to visible viewport, then offset by visual viewport origin
+      const cx = Math.max(pad, Math.min(x, w - bw - pad)) + ox;
+      const cy = Math.max(pad, Math.min(y, h - bh - pad)) + oy;
 
-  /* YES CLICK */
-  yesBtn.addEventListener("click", () => {
-    finale.classList.add("show");
-  });
+      if (!hasMovedOnce){
+        hasMovedOnce = true;
+        noBtn.style.position = 'fixed';
+        noBtn.style.transform = 'none'; // remove translate(-50%,0)
+      }
+      noBtn.style.left = cx + 'px';
+      noBtn.style.top  = cy + 'px';
+      noBtn.style.transform = 'rotate(' + (Math.random()<0.5 ? -10 : 10) + 'deg)';
+    }
 
-  /* Floating hearts */
-  function spawnHeart(){
-    const h = document.createElement("div");
-    h.className = "bg-heart";
-    h.textContent = Math.random() < 0.5 ? "💖" : "❤️";
-    h.style.left = Math.random()*100 + "vw";
-    h.style.fontSize = 16 + Math.random()*24 + "px";
-    h.style.animationDuration = 6 + Math.random()*6 + "s";
-    bg.appendChild(h);
-    setTimeout(()=>h.remove(), 12000);
-  }
+    // Pick a random on-screen spot
+    function randomSpot(){
+      const { w, h } = vv();
+      const bw = noBtn.offsetWidth || 100;
+      const bh = noBtn.offsetHeight || 44;
+      const x = Math.random() * (w - bw - pad*2) + pad;
+      const y = Math.random() * (h - bh - pad*2) + pad;
+      return { x, y };
+    }
 
-  setInterval(spawnHeart, 500);
-</script>
+    // Move "No" away from the pointer (also on hover/touch/focus)
+    function dodge(e){
+      const r = noBtn.getBoundingClientRect();
+      const px = (e && 'clientX' in e) ? e.clientX : r.left + r.width/2;
+      const py = (e && 'clientY' in e) ? e.clientY : r.top + r.height/2;
 
+      // Move opposite to pointer (vector push), then clamp
+      const cx = r.left + r.width/2;
+      const cy = r.top  + r.height/2;
+      const dx = cx - px;
+      const dy = cy - py;
+      const len = Math.max(1, Math.hypot(dx, dy));
+      const push = 160 + Math.random()*120;
+      const nx = cx + (dx/len) * push;
+      const ny = cy + (dy/len) * push;
+
+      // Convert target center to top-left desired position
+      placeNo(nx - r.width/2, ny - r.height/2);
+    }
+
+    // Keep in bounds even if viewport changes after we moved it
+    function reClampIfNeeded(){
+      if (!hasMovedOnce) return;
+      const r = noBtn.getBoundingClientRect();
+      const { w, h, ox, oy } = vv();
+      let x = r.left - ox;
+      let y = r.top  - oy;
+      let changed = false;
+
+      const bw = r.width, bh = r.height;
+      if (x < pad) { x = pad; changed = true; }
+      if (y < pad) { y = pad; changed = true; }
+      if (x > w - bw - pad) { x = w - bw - pad; changed = true; }
+      if (y > h - bh - pad) { y = h - bh - pad; changed = true; }
+      if (changed) placeNo(x, y);
+    }
+
+    // Event wiring (robust & non-clickable)
+    noBtn.addEventListener('mouseenter', dodge);
+    noBtn.addEventListener('focus', dodge);
+    noBtn.addEventListener('pointermove', (e)=>{
+      // If pointer comes within 72px radius, dodge
+      const r = noBtn.getBoundingClientRect();
+      const cx = r.left + r.width/2;
+      const cy = r.top  + r.height/2;
+      const d = Math.hypot((e.clientX - cx), (e.clientY - cy));
+      if (d < 72) dodge(e);
+    }, {passive:true});
+    noBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); dodge(e); }, {passive:false});
+    noBtn.addEventListener('pointerdown', (e)=>{ e.preventDefault(); dodge(e); }); // blocks click
+    noBtn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); dodge(e); });
+
+    // Auto-dodge periodically so it keeps moving "here and there"
+    setInterval(()=> {
+      const { x, y } = randomSpot();
+      placeNo(x, y);
+    }, 2200);
+
+    // First placement (still centered as absolute; move once shortly)
+    setTimeout(()=> {
+      const { x, y } = randomSpot();
+      placeNo(x, y);
+    }, 400);
+
+    // Re-clamp when the visible viewport changes (mobile URL bar, rotation)
+    const reclamp = () => reClampIfNeeded();
+    window.addEventListener('resize', reclamp, { passive: true });
+    if (window.visualViewport){
+      visualViewport.addEventListener('resize', reclamp);
+      visualViewport.addEventListener('scroll', reclamp);
+    }
+
+    // ------- Yes button sparkle -------
+    yesBtn.addEventListener('mousemove', (e)=>{
+      const rect = yesBtn.getBoundingClientRect();
+      const sparkle = document.createElement('span');
+      sparkle.className = 'sparkle';
+      const angle = Math.random()*Math.PI*2;
+      const radius = 16 + Math.random()*16;
+      sparkle.style.setProperty('--sx', (Math.cos(angle)*radius)+'px');
+      sparkle.style.setProperty('--sy', (Math.sin(angle)*radius)+'px');
+      sparkle.style.left = (e.clientX - rect.left - 5) + 'px';
+      sparkle.style.top = (e.clientY - rect.top - 5) + 'px';
+      yesBtn.appendChild(sparkle);
+      setTimeout(()=>sparkle.remove(), 900);
+    });
+
+    // ------- Finale effects (above overlay) -------
+    function heartsBurst(cx, cy, n=120){
+      for(let i=0;i<n;i++){
+        const s = document.createElement('div');
+        s.className = 'confetti';
+        s.textContent = Math.random()<.5 ? '💖':'💘';
+        const angle = Math.random()*Math.PI*2;
+        const dist = 80 + Math.random()*180;
+        s.style.left = cx + 'px';
+        s.style.top  = cy + 'px';
+        s.style.setProperty('--tx', (Math.cos(angle)*dist) + 'px');
+        s.style.setProperty('--ty', (Math.sin(angle)*dist) + 'px');
+        s.style.setProperty('--rot', (Math.random()*720 - 360) + 'deg');
+        s.style.setProperty('--dur', (0.6 + Math.random()*0.8) + 's');
+        document.body.appendChild(s);
+        setTimeout(()=>s.remove(), 1800);
+      }
+    }
+    function heartsRain(count=28){
+      for(let i=0;i<count;i++){
+        const h = document.createElement('div');
+        h.className = 'rain-heart';
+        h.textContent = ['💖','❤️','💕','💘'][i%4];
+        h.style.left = (Math.random()*100)+'vw';
+        h.style.setProperty('--fall', (4 + Math.random()*5) + 's');
+        document.body.appendChild(h);
+        setTimeout(()=>h.remove(), 9000);
+      }
+    }
+
+    function yesClicked(e){
+      finale.classList.add('show');
+      const cx = e?.clientX ?? window.innerWidth/2;
+      const cy = e?.clientY ?? window.innerHeight/2;
+      heartsBurst(cx, cy, 130);
+      heartsRain(34);
+    }
+    yesBtn.addEventListener('click', yesClicked);
+    yesBtn.addEventListener('keyup', (e)=>{ if(e.key==='Enter' || e.key===' ') yesClicked(e); });
+
+    // More bursts on overlay click
+    finale.addEventListener('click', (e)=> heartsBurst(e.clientX, e.clientY, 90));
+
+    // Cursor heart trail
+    let lastTrail = 0;
+    window.addEventListener('mousemove', (e)=>{
+      const now = performance.now();
+      if(now - lastTrail < 90) return;
+      lastTrail = now;
+      const s = document.createElement('div');
+      s.className = 'confetti';
+      s.textContent = '💗';
+      s.style.left = e.clientX + 'px';
+      s.style.top  = e.clientY + 'px';
+      s.style.setProperty('--tx', (Math.random()*40-20)+'px');
+      s.style.setProperty('--ty', (-40 - Math.random()*30)+'px');
+      s.style.setProperty('--rot', (Math.random()*120-60)+'deg');
+      s.style.setProperty('--dur', '.7s');
+      document.body.appendChild(s);
+      setTimeout(()=>s.remove(), 900);
+    }, {passive:true});
+  </script>
 </body>
 </html>
