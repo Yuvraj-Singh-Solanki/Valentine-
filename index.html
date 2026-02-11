@@ -115,7 +115,7 @@
       touch-action:none; /* so touchstart fires reliably */
     }
 
-    .hint{ margin-top:6px; font-size:13px; color:#7b0d31; opacity:.9; }
+    /* removed .hint */
 
     .sparkle{
       position:absolute; width:10px; height:10px; border-radius:50%;
@@ -195,14 +195,13 @@
         <button id="no" aria-label="No" type="button">No 😜</button>
       </div>
 
-      <div class="hint">Pro tip: Try touching/hovering the “No” button 😉</div>
+      <!-- Pro tip removed -->
     </section>
   </main>
 
   <!-- Finale -->
   <section class="finale" id="finale" role="dialog" aria-modal="true" aria-label="Celebration">
     <div>
-      <!-- UPDATED: heart before "Forever" -->
       <h1>💖 You are my Valentine now 💖<br>💖 Forever &amp; Always ❤️</h1>
     </div>
   </section>
@@ -261,17 +260,28 @@
       const bh = noBtn.offsetHeight || 44;
 
       // Clamp to visible viewport, then offset by visual viewport origin
-      const cx = Math.max(pad, Math.min(x, w - bw - pad)) + ox;
-      const cy = Math.max(pad, Math.min(y, h - bh - pad)) + oy;
+      let cx = Math.max(pad, Math.min(x, w - bw - pad)) + ox;
+      let cy = Math.max(pad, Math.min(y, h - bh - pad)) + oy;
 
       if (!hasMovedOnce){
         hasMovedOnce = true;
         noBtn.style.position = 'fixed';
         noBtn.style.transform = 'none'; // remove translate(-50%,0)
       }
+
+      // Failsafe: if something goes wrong, jump to a fresh visible random spot
+      if (!Number.isFinite(cx) || !Number.isFinite(cy)) {
+        const spot = randomSpot();
+        cx = spot.x + ox;
+        cy = spot.y + oy;
+      }
+
       noBtn.style.left = cx + 'px';
       noBtn.style.top  = cy + 'px';
       noBtn.style.transform = 'rotate(' + (Math.random()<0.5 ? -10 : 10) + 'deg)';
+      noBtn.style.opacity = '1';       // ensure visible
+      noBtn.style.visibility = 'visible';
+      noBtn.style.zIndex = '10000';
     }
 
     // Pick a random on-screen spot
@@ -297,8 +307,19 @@
       const dy = cy - py;
       const len = Math.max(1, Math.hypot(dx, dy));
       const push = 160 + Math.random()*120;
-      const nx = cx + (dx/len) * push;
-      const ny = cy + (dy/len) * push;
+      let nx = cx + (dx/len) * push;
+      let ny = cy + (dy/len) * push;
+
+      // If the computed destination would go off-screen too much, pick a random safe spot
+      const { w, h, ox, oy } = vv();
+      const bw = r.width, bh = r.height;
+      const offH = nx - bw/2 < -50 || nx + bw/2 > w + 50;
+      const offV = ny - bh/2 < -50 || ny + bh/2 > h + 50;
+      if (offH || offV){
+        const s = randomSpot();
+        nx = s.x + bw/2;
+        ny = s.y + bh/2;
+      }
 
       // Convert target center to top-left desired position
       placeNo(nx - r.width/2, ny - r.height/2);
@@ -337,13 +358,13 @@
     noBtn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); dodge(e); });
 
     // Auto-dodge periodically so it keeps moving "here and there"
-    setInterval(()=> {
+    setInterval(() => {
       const { x, y } = randomSpot();
       placeNo(x, y);
     }, 2200);
 
     // First placement (still centered as absolute; move once shortly)
-    setTimeout(()=> {
+    setTimeout(() => {
       const { x, y } = randomSpot();
       placeNo(x, y);
     }, 400);
@@ -435,3 +456,4 @@
   </script>
 </body>
 </html>
+``
