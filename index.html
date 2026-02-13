@@ -90,7 +90,18 @@
       will-change:width;
     }
 
-    .btns{ position:relative; margin-top:16px; height:120px; }
+    /* Buttons row — keep both buttons centered and visible */
+    .btns{
+      position:relative;
+      margin-top:16px;
+      height:auto;                     /* no fixed height */
+      display:flex;
+      gap:14px;
+      justify-content:center;
+      align-items:center;
+      flex-wrap:wrap;                  /* safe on small screens */
+    }
+
     button{
       font-family:inherit; font-weight:600;
       padding:12px 26px; font-size:18px;
@@ -104,18 +115,19 @@
     #yes:hover{ transform:translateY(-2px) scale(1.05) }
     #yes:active{ transform:translateY(0) scale(.98) }
 
-    /* Start centered; switches to fixed at first move */
+    /* --- Rigid, non-moving NO button --- */
     #no{
-      background:#e6e6e6; color:#333; position:absolute; left:50%; top:64px;
-      transform:translate(-50%,0); /* removed after first move */
+      background:#e6e6e6; color:#333;
+      position:static;           /* no absolute/fixed */
+      left:auto; top:auto;
+      transform:none;            /* no translation/rotation */
       box-shadow:0 6px 14px rgba(0,0,0,.15);
-      z-index:10000;
-      transition:left .18s ease, top .18s ease, transform .18s ease;
-      will-change:left, top, transform;
-      touch-action:none; /* so touchstart fires reliably */
+      z-index:auto;
+      touch-action:auto;
+      transition:transform .15s ease, box-shadow .15s ease, background .2s ease;
     }
-
-    /* removed .hint */
+    #no:hover{ transform:translateY(-2px) }
+    #no:active{ transform:translateY(0) scale(.98) }
 
     .sparkle{
       position:absolute; width:10px; height:10px; border-radius:50%;
@@ -174,8 +186,7 @@
     }
 
     @media (max-width:520px){
-      .btns{ height:150px }
-      #no{ top:86px }
+      .btns{ height:auto } /* was 150px; allow content to flow */
     }
   </style>
 </head>
@@ -194,8 +205,6 @@
         <button id="yes" aria-label="Yes">Yes 💖</button>
         <button id="no" aria-label="No" type="button">No 😜</button>
       </div>
-
-      <!-- Pro tip removed -->
     </section>
   </main>
 
@@ -242,140 +251,6 @@
     }
     setInterval(spawnBgHeart, 2200);
     for(let k=0;k<12;k++) setTimeout(spawnBgHeart, k*150);
-
-    // ============ NO BUTTON: NEVER VANISH, ALWAYS DODGE ============
-    // Helpers that respect *visible* viewport (address bar/zoom safe)
-    function vv() {
-      const v = window.visualViewport;
-      if (v) return { w: v.width, h: v.height, ox: v.offsetLeft, oy: v.offsetTop };
-      return { w: window.innerWidth, h: window.innerHeight, ox: 0, oy: 0 };
-    }
-    const pad = 8;
-    let hasMovedOnce = false;
-
-    // Central function to place/clamp the button
-    function placeNo(x, y){
-      const { w, h, ox, oy } = vv();
-      const bw = noBtn.offsetWidth || 100;
-      const bh = noBtn.offsetHeight || 44;
-
-      // Clamp to visible viewport, then offset by visual viewport origin
-      let cx = Math.max(pad, Math.min(x, w - bw - pad)) + ox;
-      let cy = Math.max(pad, Math.min(y, h - bh - pad)) + oy;
-
-      if (!hasMovedOnce){
-        hasMovedOnce = true;
-        noBtn.style.position = 'fixed';
-        noBtn.style.transform = 'none'; // remove translate(-50%,0)
-      }
-
-      // Failsafe: if something goes wrong, jump to a fresh visible random spot
-      if (!Number.isFinite(cx) || !Number.isFinite(cy)) {
-        const spot = randomSpot();
-        cx = spot.x + ox;
-        cy = spot.y + oy;
-      }
-
-      noBtn.style.left = cx + 'px';
-      noBtn.style.top  = cy + 'px';
-      noBtn.style.transform = 'rotate(' + (Math.random()<0.5 ? -10 : 10) + 'deg)';
-      noBtn.style.opacity = '1';       // ensure visible
-      noBtn.style.visibility = 'visible';
-      noBtn.style.zIndex = '10000';
-    }
-
-    // Pick a random on-screen spot
-    function randomSpot(){
-      const { w, h } = vv();
-      const bw = noBtn.offsetWidth || 100;
-      const bh = noBtn.offsetHeight || 44;
-      const x = Math.random() * (w - bw - pad*2) + pad;
-      const y = Math.random() * (h - bh - pad*2) + pad;
-      return { x, y };
-    }
-
-    // Move "No" away from the pointer (also on hover/touch/focus)
-    function dodge(e){
-      const r = noBtn.getBoundingClientRect();
-      const px = (e && 'clientX' in e) ? e.clientX : r.left + r.width/2;
-      const py = (e && 'clientY' in e) ? e.clientY : r.top + r.height/2;
-
-      // Move opposite to pointer (vector push), then clamp
-      const cx = r.left + r.width/2;
-      const cy = r.top  + r.height/2;
-      const dx = cx - px;
-      const dy = cy - py;
-      const len = Math.max(1, Math.hypot(dx, dy));
-      const push = 160 + Math.random()*120;
-      let nx = cx + (dx/len) * push;
-      let ny = cy + (dy/len) * push;
-
-      // If the computed destination would go off-screen too much, pick a random safe spot
-      const { w, h, ox, oy } = vv();
-      const bw = r.width, bh = r.height;
-      const offH = nx - bw/2 < -50 || nx + bw/2 > w + 50;
-      const offV = ny - bh/2 < -50 || ny + bh/2 > h + 50;
-      if (offH || offV){
-        const s = randomSpot();
-        nx = s.x + bw/2;
-        ny = s.y + bh/2;
-      }
-
-      // Convert target center to top-left desired position
-      placeNo(nx - r.width/2, ny - r.height/2);
-    }
-
-    // Keep in bounds even if viewport changes after we moved it
-    function reClampIfNeeded(){
-      if (!hasMovedOnce) return;
-      const r = noBtn.getBoundingClientRect();
-      const { w, h, ox, oy } = vv();
-      let x = r.left - ox;
-      let y = r.top  - oy;
-      let changed = false;
-
-      const bw = r.width, bh = r.height;
-      if (x < pad) { x = pad; changed = true; }
-      if (y < pad) { y = pad; changed = true; }
-      if (x > w - bw - pad) { x = w - bw - pad; changed = true; }
-      if (y > h - bh - pad) { y = h - bh - pad; changed = true; }
-      if (changed) placeNo(x, y);
-    }
-
-    // Event wiring (robust & non-clickable)
-    noBtn.addEventListener('mouseenter', dodge);
-    noBtn.addEventListener('focus', dodge);
-    noBtn.addEventListener('pointermove', (e)=>{
-      // If pointer comes within 72px radius, dodge
-      const r = noBtn.getBoundingClientRect();
-      const cx = r.left + r.width/2;
-      const cy = r.top  + r.height/2;
-      const d = Math.hypot((e.clientX - cx), (e.clientY - cy));
-      if (d < 72) dodge(e);
-    }, {passive:true});
-    noBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); dodge(e); }, {passive:false});
-    noBtn.addEventListener('pointerdown', (e)=>{ e.preventDefault(); dodge(e); }); // blocks click
-    noBtn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); dodge(e); });
-
-    // Auto-dodge periodically so it keeps moving "here and there"
-    setInterval(() => {
-      const { x, y } = randomSpot();
-      placeNo(x, y);
-    }, 2200);
-
-    // First placement (still centered as absolute; move once shortly)
-    setTimeout(() => {
-      const { x, y } = randomSpot();
-      placeNo(x, y);
-    }, 400);
-
-    // Re-clamp when the visible viewport changes (mobile URL bar, rotation)
-    const reclamp = () => reClampIfNeeded();
-    window.addEventListener('resize', reclamp, { passive: true });
-    if (window.visualViewport){
-      visualViewport.addEventListener('resize', reclamp);
-      visualViewport.addEventListener('scroll', reclamp);
-    }
 
     // ------- Yes button sparkle -------
     yesBtn.addEventListener('mousemove', (e)=>{
@@ -432,6 +307,19 @@
     yesBtn.addEventListener('click', yesClicked);
     yesBtn.addEventListener('keyup', (e)=>{ if(e.key==='Enter' || e.key===' ') yesClicked(e); });
 
+    // OPTIONAL: a tiny shake on "No" click (button stays rigid)
+    noBtn.addEventListener('click', ()=>{
+      noBtn.animate(
+        [
+          { transform: 'translateX(0)' },
+          { transform: 'translateX(-6px)' },
+          { transform: 'translateX(6px)' },
+          { transform: 'translateX(0)' },
+        ],
+        { duration: 180, iterations: 1 }
+      );
+    });
+
     // More bursts on overlay click
     finale.addEventListener('click', (e)=> heartsBurst(e.clientX, e.clientY, 90));
 
@@ -456,4 +344,3 @@
   </script>
 </body>
 </html>
-``
