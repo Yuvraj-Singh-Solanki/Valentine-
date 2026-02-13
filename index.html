@@ -317,11 +317,15 @@
     }
     
     function getBounds(){
+      const vw = document.documentElement.clientWidth;
+      const vh = document.documentElement.clientHeight;
+
       return {
-        maxX: window.innerWidth  - noBtn.offsetWidth  - SAFE_MARGIN,
-        maxY: window.innerHeight - noBtn.offsetHeight - SAFE_MARGIN
+        maxX: vw - noBtn.offsetWidth - SAFE_MARGIN,
+        maxY: vh - noBtn.offsetHeight - SAFE_MARGIN
       };
     }
+
     
     function activateNo(){
       if (noActivated) return;
@@ -348,17 +352,12 @@
     
       const { maxX, maxY } = getBounds();
     
-      const randomX = clamp(
-        Math.random() * window.innerWidth,
-        SAFE_MARGIN,
-        maxX
-      );
-    
-      const randomY = clamp(
-        Math.random() * window.innerHeight,
-        SAFE_MARGIN,
-        maxY
-      );
+      const vw = document.documentElement.clientWidth;
+      const vh = document.documentElement.clientHeight;
+
+      const randomX = Math.random() * (vw - noBtn.offsetWidth - SAFE_MARGIN * 2) + SAFE_MARGIN;
+      const randomY = Math.random() * (vh - noBtn.offsetHeight - SAFE_MARGIN * 2) + SAFE_MARGIN;
+
     
       noBtn.style.left = randomX + "px";
       noBtn.style.top  = randomY + "px";
