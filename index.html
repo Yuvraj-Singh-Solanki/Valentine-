@@ -371,25 +371,31 @@
     
       if (!inside) return;
     
-      const dx = (r.cx - clientX);
-      const dy = (r.cy - clientY);
+      const btnRect = noBtn.getBoundingClientRect();
+    
+      const centerX = btnRect.left + btnRect.width / 2;
+      const centerY = btnRect.top + btnRect.height / 2;
+    
+      const dx = centerX - clientX;
+      const dy = centerY - clientY;
+    
       const dist = Math.hypot(dx, dy) || 1;
     
       const nx = dx / dist;
       const ny = dy / dist;
     
-      const jitterX = (Math.random()*8 - 4);
-      const jitterY = (Math.random()*6 - 3);
+      const { maxX, maxY } = bounds();
     
-      const cur = noBtn.getBoundingClientRect();
-      let nextLeft = cur.left + nx * RUN_STEP + jitterX;
-      let nextTop  = cur.top  + ny * (RUN_STEP * VERTICAL_FACTOR) + jitterY;
+      let nextLeft = btnRect.left + nx * RUN_STEP;
+      let nextTop  = btnRect.top  + ny * (RUN_STEP * VERTICAL_FACTOR);
     
-      const {maxX, maxY} = bounds();
+      // HARD containment inside viewport
+      nextLeft = Math.max(MARGIN, Math.min(nextLeft, maxX));
+      nextTop  = Math.max(MARGIN, Math.min(nextTop, maxY));
     
-      // STRICT clamp so it NEVER leaves screen
-      nextLeft = clamp(nextLeft, MARGIN, maxX);
-      nextTop  = clamp(nextTop,  MARGIN, maxY);
+      // Extra safety near edges
+      if (nextTop >= maxY - 2) nextTop = maxY - 10;
+      if (nextLeft >= maxX - 2) nextLeft = maxX - 10;
     
       noBtn.style.left = nextLeft + 'px';
       noBtn.style.top  = nextTop + 'px';
