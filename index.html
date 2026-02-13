@@ -307,32 +307,16 @@
     yesBtn.addEventListener('click', yesClicked);
     yesBtn.addEventListener('keyup', (e)=>{ if(e.key==='Enter' || e.key===' ') yesClicked(e); });
 
-        // -------------------- TELEPORTING "NO" BUTTON --------------------
-    const SAFE_MARGIN = 30;
+    // -------------------- SAFE TELEPORTING "NO" BUTTON --------------------
     let noActivated = false;
     let placeholder = null;
-    
-    function clamp(v, min, max){
-      return Math.min(Math.max(v, min), max);
-    }
-    
-    function getBounds(){
-      const vw = document.documentElement.clientWidth;
-      const vh = document.documentElement.clientHeight;
-
-      return {
-        maxX: vw - noBtn.offsetWidth - SAFE_MARGIN,
-        maxY: vh - noBtn.offsetHeight - SAFE_MARGIN
-      };
-    }
-
+    const SAFE_MARGIN = 20;
     
     function activateNo(){
       if (noActivated) return;
     
       const r = noBtn.getBoundingClientRect();
     
-      // keep layout beside YES button
       placeholder = document.createElement('span');
       placeholder.style.display = 'inline-block';
       placeholder.style.width = r.width + 'px';
@@ -341,8 +325,8 @@
     
       noBtn.style.position = 'fixed';
       noBtn.style.left = r.left + 'px';
-      noBtn.style.top  = r.top  + 'px';
-      noBtn.style.zIndex = 10;
+      noBtn.style.top  = r.top + 'px';
+      noBtn.style.zIndex = 1000;
     
       noActivated = true;
     }
@@ -350,42 +334,61 @@
     function teleportNo(){
       if (!noActivated) return;
     
-      const { maxX, maxY } = getBounds();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
     
-      const vw = document.documentElement.clientWidth;
-      const vh = document.documentElement.clientHeight;
-
-      const randomX = Math.random() * (vw - noBtn.offsetWidth - SAFE_MARGIN * 2) + SAFE_MARGIN;
-      const randomY = Math.random() * (vh - noBtn.offsetHeight - SAFE_MARGIN * 2) + SAFE_MARGIN;
-
+      const btnRect = noBtn.getBoundingClientRect();
+      const btnW = btnRect.width;
+      const btnH = btnRect.height;
     
-      noBtn.style.left = randomX + "px";
-      noBtn.style.top  = randomY + "px";
+      // calculate safe max positions
+      const maxX = vw - btnW - SAFE_MARGIN;
+      const maxY = vh - btnH - SAFE_MARGIN;
+    
+      let newX = Math.random() * maxX;
+      let newY = Math.random() * maxY;
+    
+      // enforce hard clamp
+      if (newX < SAFE_MARGIN) newX = SAFE_MARGIN;
+      if (newY < SAFE_MARGIN) newY = SAFE_MARGIN;
+      if (newX > maxX) newX = maxX;
+      if (newY > maxY) newY = maxY;
+    
+      noBtn.style.left = newX + "px";
+      noBtn.style.top  = newY + "px";
+    
+      // EXTRA HARD SAFETY (final correction)
+      requestAnimationFrame(() => {
+        const r = noBtn.getBoundingClientRect();
+    
+        if (r.right > vw)
+          noBtn.style.left = (vw - r.width - SAFE_MARGIN) + "px";
+    
+        if (r.bottom > vh)
+          noBtn.style.top = (vh - r.height - SAFE_MARGIN) + "px";
+    
+        if (r.left < SAFE_MARGIN)
+          noBtn.style.left = SAFE_MARGIN + "px";
+    
+        if (r.top < SAFE_MARGIN)
+          noBtn.style.top = SAFE_MARGIN + "px";
+      });
     }
     
-    // Teleport when mouse enters
     noBtn.addEventListener("pointerenter", () => {
       activateNo();
       teleportNo();
     });
     
-    // Teleport if clicked
     noBtn.addEventListener("click", (e)=>{
       e.preventDefault();
       teleportNo();
     });
     
-    // Keep inside screen on resize
     window.addEventListener("resize", ()=>{
       if (!noActivated) return;
-      const rect = noBtn.getBoundingClientRect();
-      const { maxX, maxY } = getBounds();
-    
-      noBtn.style.left = clamp(rect.left, SAFE_MARGIN, maxX) + "px";
-      noBtn.style.top  = clamp(rect.top, SAFE_MARGIN, maxY) + "px";
+      teleportNo();
     });
-
-
 
     // -------------------- Extras you already had --------------------
     function heartsBurst(cx, cy, n=120){
