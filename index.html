@@ -31,7 +31,7 @@
       margin:0;
       font-family:Poppins, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:#222;
-      overflow:hidden;
+      overflow:hidden; /* keep the scene tidy */
       background:linear-gradient(120deg,var(--bg1),var(--bg2),var(--bg3),var(--bg4));
       background-size:300% 300%;
       animation:bgMove 15s ease infinite;
@@ -72,8 +72,7 @@
       padding:32px 28px 40px;
       text-align:center;
       border:1px solid rgba(255,255,255,.55);
-      /* allow NO button to escape if needed (but we move it to fixed anyway) */
-      overflow:visible;
+      overflow:visible; /* let the No button escape gracefully later */
     }
     .ribbon{
       position:absolute; inset:auto -40px -40px auto;
@@ -91,7 +90,7 @@
       will-change:width;
     }
 
-    /* Buttons row — keep both buttons centered initially */
+    /* Buttons row — Yes and No start side-by-side */
     .btns{
       position:relative;
       margin-top:16px;
@@ -115,17 +114,16 @@
     #yes:hover{ transform:translateY(-2px) scale(1.05) }
     #yes:active{ transform:translateY(0) scale(.98) }
 
-    /* --- Moving NO button (full-screen evasive) --- */
+    /* No starts static; will switch to fixed in JS ONLY after activation */
     #no{
       background:#e6e6e6; color:#333;
-      /* We will switch to position:fixed in JS at the exact on-screen location */
       position:static;
       left:auto; top:auto;
       transform:none;
       box-shadow:0 6px 14px rgba(0,0,0,.15);
       z-index:4;
-      touch-action:none;          /* improves evasion on touch */
-      will-change: left, top, transform;
+      touch-action:none;
+      will-change:left, top, transform;
     }
     #no:hover{ transform:translateY(-2px) }
     #no:active{ transform:translateY(0) scale(.98) }
@@ -309,8 +307,12 @@
     yesBtn.addEventListener('keyup', (e)=>{ if(e.key==='Enter' || e.key===' ') yesClicked(e); });
 
     // -------------------- MOVING "NO" BUTTON --------------------
-    const SAFE_DISTANCE = 140;  // how close the cursor can get before NO runs
-    const MARGIN = 8;           // viewport margin to keep NO visible
+    const SAFE_DISTANCE = 140;     // run-away radius once activated
+    const ACTIVATE_DISTANCE = 160; // how close to trigger activation
+    const MARGIN = 10;             // keep the button inside viewport
+
+    let noActivated = false;
+    let placeholder = null;
 
     function clamp(v, min, max){ return Math.min(Math.max(v, min), max); }
     function bounds(){
@@ -320,22 +322,33 @@
       };
     }
 
-    // Start with NO button in its normal position, then switch to fixed
-    function initNoButtonToFixed(){
+    // Activate: keep it beside Yes initially, then convert to fixed at same spot
+    function activateNo(){
+      if (noActivated) return;
+
       const r = noBtn.getBoundingClientRect();
-      // Freeze current visual size so layout changes don’t shift it
-      noBtn.style.width = r.width + 'px';
-      noBtn.style.height = r.height + 'px';
-      // Move to fixed at the same spot
+
+      // Drop a placeholder so layout (Yes button) doesn't shift
+      placeholder = document.createElement('span');
+      placeholder.style.display = 'inline-block';
+      placeholder.style.width = r.width + 'px';
+      placeholder.style.height = r.height + 'px';
+      placeholder.setAttribute('aria-hidden', 'true');
+      noBtn.parentNode.insertBefore(placeholder, noBtn);
+
+      // Move to fixed at the exact on-screen location
       noBtn.style.position = 'fixed';
       noBtn.style.left = r.left + 'px';
       noBtn.style.top  = r.top  + 'px';
-      noBtn.style.transform = 'none';
-      noBtn.style.zIndex = 4;
+      noBtn.style.zIndex = 10; // always above the card
+
+      noActivated = true;
     }
 
-    // Evade on mouse move if pointer gets close
+    // Slide away from the pointer, but stay on screen
     function evadePointer(e){
+      if (!noActivated) return;
+
       const rect = noBtn.getBoundingClientRect();
       const cx = rect.left + rect.width/2;
       const cy = rect.top  + rect.height/2;
@@ -346,10 +359,9 @@
       if (dist < SAFE_DISTANCE){
         const nx = dx / (dist || 1);
         const ny = dy / (dist || 1);
-        // Move away by the amount we're “inside” the safe radius + a bit
         const push = (SAFE_DISTANCE - dist) + 12;
-        const jitterX = (Math.random()*14 - 7);
-        const jitterY = (Math.random()*14 - 7);
+        const jitterX = (Math.random()*10 - 5);
+        const jitterY = (Math.random()*10 - 5);
 
         let newLeft = rect.left + nx * push + jitterX;
         let newTop  = rect.top  + ny * push + jitterY;
@@ -363,38 +375,27 @@
       }
     }
 
-    // Teleport to a random spot (far from provided point if any)
-    function teleportAway(px = window.innerWidth/2, py = window.innerHeight/2){
-      const {maxX, maxY} = bounds();
-      let left = Math.random() * maxX;
-      let top  = Math.random() * maxY;
-
-      const w = noBtn.offsetWidth;
-      const h = noBtn.offsetHeight;
-
-      // Make sure we don't land too close to the pointer
-      let tries = 0;
-      while (Math.hypot((left + w/2) - px, (top + h/2) - py) < SAFE_DISTANCE && tries++ < 30){
-        left = Math.random() * maxX;
-        top  = Math.random() * maxY;
+    // Activate when the pointer gets near (no instant teleport)
+    window.addEventListener('mousemove', (e)=>{
+      if (!noActivated){
+        const r = noBtn.getBoundingClientRect();
+        const cx = r.left + r.width/2;
+        const cy = r.top  + r.height/2;
+        const dist = Math.hypot(cx - e.clientX, cy - e.clientY);
+        if (dist < ACTIVATE_DISTANCE) activateNo();
       }
-
-      noBtn.style.left = left + 'px';
-      noBtn.style.top  = top  + 'px';
-    }
-
-    // Init once everything has laid out (fonts loaded etc.)
-    window.addEventListener('load', initNoButtonToFixed);
-
-    // Pointer & touch interactions
-    window.addEventListener('mousemove', evadePointer, {passive:true});
-    noBtn.addEventListener('pointerenter', (e)=> teleportAway(e.clientX, e.clientY));
-    window.addEventListener('touchstart', (e)=>{
-      const t = e.touches[0];
-      teleportAway(t.clientX, t.clientY);
+      evadePointer(e);
     }, {passive:true});
 
-    // Playful tiny hop when clicked (if they ever manage!)
+    // Touch support: activate and nudge away from the first touch point
+    window.addEventListener('touchstart', (e)=>{
+      const t = e.touches[0];
+      if (!noActivated) activateNo();
+      // simulate one evade step
+      evadePointer({clientX: t.clientX, clientY: t.clientY});
+    }, {passive:true});
+
+    // A small hop if they click it (if they ever manage!)
     noBtn.addEventListener('click', ()=>{
       noBtn.animate(
         [
@@ -406,15 +407,16 @@
       );
     });
 
-    // Keep NO within screen after resize/rotation
+    // Keep NO within the screen after resize/rotation
     window.addEventListener('resize', ()=>{
+      if (!noActivated) return;
       const rect = noBtn.getBoundingClientRect();
       const {maxX, maxY} = bounds();
       noBtn.style.left = clamp(rect.left, MARGIN, maxX) + 'px';
       noBtn.style.top  = clamp(rect.top,  MARGIN, maxY) + 'px';
     });
 
-    // More bursts on overlay click
+    // ------- Finale extra interactions -------
     finale.addEventListener('click', (e)=> heartsBurst(e.clientX, e.clientY, 90));
 
     // Cursor heart trail
