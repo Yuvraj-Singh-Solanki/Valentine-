@@ -307,124 +307,131 @@
     yesBtn.addEventListener('click', yesClicked);
     yesBtn.addEventListener('keyup', (e)=>{ if(e.key==='Enter' || e.key===' ') yesClicked(e); });
 
-    // -------------------- IMPROVED MOVING "NO" BUTTON --------------------
-    const MARGIN = 10;             // keep inside viewport
-    const RUN_STEP = 120;          // distance to move per dodge
-    const VERTICAL_FACTOR = 0.6;   // 0 = only horizontal, 1 = full vertical; 0.6 keeps it visible
-    const TRIGGER_PADDING = 18;    // how close cursor must be to trigger a dodge
-
+    // -------------------- FIXED MOVING "NO" BUTTON --------------------
+    const MARGIN = 20;              // extra safe space from screen edges
+    const RUN_STEP = 110;           // distance per dodge
+    const VERTICAL_FACTOR = 0.45;   // reduced vertical movement (prevents going too down)
+    const TRIGGER_PADDING = 18;
+    
     let noActivated = false;
     let placeholder = null;
-
-    function clamp(v, min, max){ return Math.min(Math.max(v, min), max); }
+    
+    function clamp(v, min, max){ 
+      return Math.min(Math.max(v, min), max); 
+    }
+    
     function bounds(){
       return {
         maxX: window.innerWidth  - noBtn.offsetWidth  - MARGIN,
         maxY: window.innerHeight - noBtn.offsetHeight - MARGIN
       };
     }
+    
     function rectWithPadding(el, pad){
       const r = el.getBoundingClientRect();
       return {
-        left: r.left - pad, right: r.right + pad,
-        top:  r.top  - pad, bottom:r.bottom + pad,
-        width:r.width + pad*2, height:r.height + pad*2,
-        cx: r.left + r.width/2, cy: r.top + r.height/2
+        left: r.left - pad, 
+        right: r.right + pad,
+        top:  r.top  - pad, 
+        bottom:r.bottom + pad,
+        cx: r.left + r.width/2, 
+        cy: r.top + r.height/2
       };
     }
-
-    // Convert to fixed at the same spot when the user actually hovers "No"
+    
+    // Activate only once
     function activateNo(){
       if (noActivated) return;
+    
       const r = noBtn.getBoundingClientRect();
-
-      // placeholder to keep layout beside "Yes"
+    
+      // placeholder to preserve layout
       placeholder = document.createElement('span');
       placeholder.style.display = 'inline-block';
       placeholder.style.width = r.width + 'px';
       placeholder.style.height = r.height + 'px';
       placeholder.setAttribute('aria-hidden', 'true');
       noBtn.parentNode.insertBefore(placeholder, noBtn);
-
-      // lift the real button out of flow
+    
       noBtn.style.position = 'fixed';
       noBtn.style.left = r.left + 'px';
       noBtn.style.top  = r.top  + 'px';
-      noBtn.style.zIndex = 10; // above card/decors
-
+      noBtn.style.zIndex = 10;
+    
       noActivated = true;
     }
-
-    // Only dodge when pointer is inside a padded rectangle around the button
+    
     function maybeDodge(clientX, clientY){
       if (!noActivated) return;
-
+    
       const r = rectWithPadding(noBtn, TRIGGER_PADDING);
+    
       const inside = clientX >= r.left && clientX <= r.right &&
                      clientY >= r.top  && clientY <= r.bottom;
-
+    
       if (!inside) return;
-
-      // run away from cursor
+    
       const dx = (r.cx - clientX);
       const dy = (r.cy - clientY);
       const dist = Math.hypot(dx, dy) || 1;
+    
       const nx = dx / dist;
       const ny = dy / dist;
-
-      const jitterX = (Math.random()*10 - 5);
-      const jitterY = (Math.random()*8  - 4);
-
+    
+      const jitterX = (Math.random()*8 - 4);
+      const jitterY = (Math.random()*6 - 3);
+    
       const cur = noBtn.getBoundingClientRect();
       let nextLeft = cur.left + nx * RUN_STEP + jitterX;
       let nextTop  = cur.top  + ny * (RUN_STEP * VERTICAL_FACTOR) + jitterY;
-
+    
       const {maxX, maxY} = bounds();
+    
+      // STRICT clamp so it NEVER leaves screen
       nextLeft = clamp(nextLeft, MARGIN, maxX);
       nextTop  = clamp(nextTop,  MARGIN, maxY);
-
+    
       noBtn.style.left = nextLeft + 'px';
       noBtn.style.top  = nextTop + 'px';
     }
-
-    // Activate only when the pointer actually touches the "No" button
+    
     noBtn.addEventListener('pointerenter', (e)=>{
       activateNo();
-      // first dodge immediately so it's playful
       maybeDodge(e.clientX, e.clientY);
     });
-
-    // After activation, dodge whenever the cursor is close to the button
+    
     window.addEventListener('mousemove', (e)=>{
       if (!noActivated) return;
       maybeDodge(e.clientX, e.clientY);
     }, {passive:true});
-
-    // Touch support – activate and dodge a bit away from the finger
+    
     window.addEventListener('touchstart', (e)=>{
       const t = e.touches[0];
       activateNo();
       maybeDodge(t.clientX, t.clientY);
     }, {passive:true});
-
-    // Keep NO within the screen after resize/rotation
+    
     window.addEventListener('resize', ()=>{
       if (!noActivated) return;
       const rect = noBtn.getBoundingClientRect();
       const {maxX, maxY} = bounds();
+    
       noBtn.style.left = clamp(rect.left, MARGIN, maxX) + 'px';
       noBtn.style.top  = clamp(rect.top,  MARGIN, maxY) + 'px';
     });
-
-    // Fun hop on click (if they manage to click it!)
+    
+    // Fun hop on click
     noBtn.addEventListener('click', ()=>{
       noBtn.animate(
-        [{ transform:'translateY(0)' },
-         { transform:'translateY(-10px)' },
-         { transform:'translateY(0)' }],
-        { duration: 220, iterations: 1, easing: 'ease-out' }
+        [
+          { transform:'translateY(0)' },
+          { transform:'translateY(-10px)' },
+          { transform:'translateY(0)' }
+        ],
+        { duration:220, easing:'ease-out' }
       );
     });
+
 
     // -------------------- Extras you already had --------------------
     function heartsBurst(cx, cy, n=120){
